@@ -6,6 +6,14 @@ Software for my replacement RGB+White LED for my desk magnifying lamp
 My fluorescent lamp on my magnifying lamp (finally, it lasted 15 years) so now it's time to make it smarter!  I bought an LED ring 
 
 Parts (so far)
+  - Copied my breadboard design into a PCB layout (untested currently)
+    - https://oshwlab.com/posicat/led-ring-light-controller
+    - 3.3v regulator
+    - ESP12F solder pads
+    - Internal OR External rotary encoder (depending on the room available in the lamp)
+    - External 5V power connects to the RGB LED pad
+      - Primary power supplied to the ring
+      - From there to this PCB as the PCB power requirements are far less.
   - Magnifying lamp with a round fluorescent light 
     - preferably a dead light, no need to waste a good light
   - LED Ring light 
@@ -18,13 +26,16 @@ Parts (so far)
     - Complete overkill for this project, but I wanted the extra memory, and WiFi could be fun.
   - 5v 4A regulator
     - I'm powering it via a 24V 30A power pack that powers my whole desk
-    - This should let most people pick their own power supply.
+    - This should let most people pick their own power supply, old laptop power suppoes are ideal!
     
-    
-  Features I intend to add:
-    - All-on white Light (default, startup condition) [done]
+  Features already in the code:
+    - All-on white Light (default, startup condition)
     - Ability to light just a portion of the ring (arc size)
-    - Ability to spin that portion of the ring that's lit (arc rotation)
+  
+  Features I intend to add to this code
+   - Ability to spin that portion of the ring that's lit (arc rotation)
     - Change colors, can be useful for making certain things more visible
+  
+  Optional extras I plan to add to my build:
     - A pair of USB cameras for recording projects (2 because I want to try getting 3D images)
     - USB hub for the cameras
