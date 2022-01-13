@@ -41,26 +41,27 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMPIXELS, esp8266_pinToGpio[NEO_PIN
 #define MODES 3
 #define MODE_BRIGHT 0
 #define MODE_ARC_START 1
-#define MODE_ARC_END 2
+#define MODE_ARC_OFFSET 2
   
 int mode = 0; // When the encoder is pressed we switch modes, this keeps track of the mode number.
 
 int modeValue[MODES]; // For each mode rotating the encoder will alter it's own value
-int modeDeltas[MODES] = {16,4,4};
+int modeDeltas[MODES] = {8,4,4};
+bool modeRolls[MODES] = {false,false,true};
 
 bool rangeChange=false;
 bool buttonPress=false;
 
 void callbackMovement(int dir,int spd) {
   modeValue[mode]+=modeDeltas[mode]*dir;
-  modeValue[mode]=constrainRange(modeValue[mode],0,255,false);
-  debug("Movement : " + String(dir) + " " + String(spd) + " Mode : " + String(mode) + " Val : " + String(modeValue[mode]));
+  modeValue[mode]=constrainRange(modeValue[mode],0,255,modeRolls[mode]);
+  debug("Movement : " + String(dir) + " (" + String(spd) + "ms) Mode : " + String(mode) + " Val : " + String(modeValue[mode]));
   rangeChange=true;
 }
 
 void callbackButton(int spd) {
   mode++;
-  mode=constrainRange(mode,0,MODES,true);
+  mode=constrainRange(mode,0,MODES-1,true);
   debug("Button : " + String(spd) + " Mode : " + String(mode));
   buttonPress=true;
 }
@@ -91,9 +92,8 @@ void loop() {
 
       int bright = 255 - (modeValue[MODE_BRIGHT]);
       strip.setBrightness(bright); // set brightness
-      debug("Bright : "+String(bright));
 
-      setPixelArc(modeValue[MODE_ARC_START],255-modeValue[MODE_ARC_END],WHITE );
+      setPixelArc(255-modeValue[MODE_ARC_START],modeValue[MODE_ARC_OFFSET],WHITE );
 
       strip.show();
       updatePixels=false;
@@ -118,31 +118,30 @@ int constrainRange(int curVal,int minVal,int maxVal,bool rollValue) {
   return curVal;
 }
 
-void setPixelArc(int startArc,int endArc, uint32_t setColor) {
-  String msg="";
+void setPixelArc(int arcSize,int arcOffset, uint32_t setColor) {
+  //String msg="";
   int offset=0;
   int pixelRingCount= sizeof(pixelRing)/sizeof(uint32_t);
   
   for(int i=0 ; i < pixelRingCount ; i++) { // Go through all rings in the list
-    msg = "Ring : " + String(i) + " [0 .. " + String(pixelRing[i]) + "] ... ";
-
-    float sa = (startArc*pixelRing[i])/255; // First pixel lit
-    float ea = (endArc*pixelRing[i])/255; // Last pixel lit
-
-    msg += "["+String(startArc)+"="+String(sa)+".."+String(endArc)+"="+String(ea)+"] ... ";
-    
     for (int o=0 ; o < pixelRing[i] ; o++) { // Loop all pixels, default off
+
+      int arcPos = o*256 / pixelRing[i];
+      int offPos = (arcPos + arcOffset) % 256;
+
+      //msg = String(o)+"->"+String(arcPos)+"->"+String(offPos);
+       
       int color = 0;
-      if (o >= sa && o <= ea) { // In the arc
+      if (offPos<=arcSize) { // In the arc
           color=setColor;
-          msg+="C";
+          //msg+="C";
       }else{
-          msg+="_";
+          //msg+="_";
           color=0;
       }
       strip.setPixelColor(offset+o, color);
+      //debug(msg);
     }
-    //debug(msg);
     offset+=pixelRing[i]; // Start the next offset at the begining of the next ring
   }
 }
